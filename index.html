@@ -247,18 +247,14 @@
 
         // 1. Carregar Dados da Nuvem
         async function carregarDados() {
-            if (BIN_ID === '69ea979eaaba8821972f38ca') {
-                document.getElementById('display-nome').innerText = "Configure o JSONBin no código";
-                updateDisplay();
-                return;
-            }
-
             showStatus(true);
             try {
                 const response = await fetch(URL, {
                     headers: { 'X-Master-Key': API_KEY }
                 });
                 const data = await response.json();
+                
+                // O JSONBin v3 coloca seus dados dentro da chave "record"
                 const record = data.record;
 
                 nomePessoa = record.nomePessoa || nomePessoa;
@@ -269,7 +265,7 @@
                     currentWater = record.aguaHoje || 0;
                     aguaOntem = record.aguaOntem || 0;
                 } else {
-                    // Se o último registro não foi hoje, movemos a água de "hoje" para "ontem"
+                    // Se o último registro não foi hoje, movemos a água
                     aguaOntem = record.aguaHoje || 0;
                     currentWater = 0;
                     // Salva essa virada de dia imediatamente
@@ -286,8 +282,6 @@
 
         // 2. Salvar Dados na Nuvem
         async function salvarDadosNoBin(novoTotal, totalOntem = aguaOntem) {
-            if (BIN_ID === '69ea979eaaba8821972f38ca') return;
-
             showStatus(true);
             try {
                 await fetch(URL, {
@@ -308,7 +302,6 @@
             }
             showStatus(false);
         }
-
         // 3. Atualizar Interface Visual
         function updateDisplay() {
             const goal = parseFloat(document.getElementById('input-goal').value) || 1;
