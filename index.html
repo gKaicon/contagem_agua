@@ -221,7 +221,7 @@
         // ==========================================
         // CONFIGURAÇÕES DO JSONBIN
         // ==========================================
-        const BIN_ID = '69ea904b36566621a8e58a6f'; 
+        const BIN_ID = '69ea979eaaba8821972f38ca'; 
         const API_KEY = '$2a$10$eBHRlgQQDARctaDx0wJA6.IqLF1W6ICK6nR31MDyZipSe4vhCAV1.'; 
         const URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
@@ -247,7 +247,7 @@
 
         // 1. Carregar Dados da Nuvem
         async function carregarDados() {
-            if (BIN_ID === '69ea904b36566621a8e58a6f') {
+            if (BIN_ID === '69ea979eaaba8821972f38ca') {
                 document.getElementById('display-nome').innerText = "Configure o JSONBin no código";
                 updateDisplay();
                 return;
@@ -286,7 +286,7 @@
 
         // 2. Salvar Dados na Nuvem
         async function salvarDadosNoBin(novoTotal, totalOntem = aguaOntem) {
-            if (BIN_ID === '69ea904b36566621a8e58a6f') return;
+            if (BIN_ID === '69ea979eaaba8821972f38ca') return;
 
             showStatus(true);
             try {
