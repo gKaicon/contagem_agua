@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galão de Hidratação Animado</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            margin: 0; 
+            background-color: #0f172a; 
+            color: #f8fafc;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden;
+        }
+        
+        .stats { 
+            text-align: center; 
+            margin-bottom: 25px; 
+            z-index: 10; 
+        }
+        .stats h2 {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            margin: 0 0 10px 0;
+            font-weight: 500;
+        }
+        .stats h1 { 
+            font-size: 3.5rem; 
+            margin: 0; 
+            color: #38bdf8; 
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+        }
+        .stats p {
+            margin: 5px 0 0 0; 
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        .stats .ontem {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 8px;
+        }
+        
+        /* Estrutura Realista do Galão */
+        .bottle-wrapper {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .bottle-cap {
+            width: 45px; 
+            height: 18px; 
+            background: #0284c7;
+            border-radius: 5px 5px 0 0;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+        }
+        .bottle-neck {
+            width: 65px; 
+            height: 25px; 
+            border: 4px solid #334155;
+            border-bottom: none; 
+            border-top: none; 
+            background: rgba(255,255,255,0.03);
+        }
+        .bottle-body {
+            position: relative; 
+            width: 200px; 
+            height: 280px;
+            border: 4px solid #334155; 
+            border-radius: 20px 20px 40px 40px;
+            background: rgba(255,255,255,0.03); 
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 15px 40px rgba(0,0,0,0.4);
+            background-image: repeating-linear-gradient(
+                transparent, transparent 55px,
+                rgba(255,255,255,0.05) 55px, rgba(255,255,255,0.05) 60px
+            );
+        }
+
+        /* Nível da Água e Animação da Onda */
+        .water-fill {
+            position: absolute; 
+            bottom: 0; 
+            left: 0;
+            width: 100%; 
+            height: 0%; 
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            transform-origin: bottom;
+            box-shadow: inset 0 10px 20px rgba(255,255,255,0.2);
+        }
+        
+        .water-fill::before, .water-fill::after {
+            content: ''; 
+            position: absolute;
+            width: 500px; 
+            height: 500px;
+            top: -490px; 
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .water-fill::before {
+            border-radius: 45%;
+            background: #0f172a; 
+            animation: wave 6s infinite linear;
+        }
+        .water-fill::after {
+            border-radius: 40%;
+            background: rgba(15, 23, 42, 0.5); 
+            animation: wave 12s infinite linear;
+        }
+        @keyframes wave {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        /* Painel de Controles */
+        .controls {
+            background: #1e293b; 
+            padding: 25px; 
+            border-radius: 20px;
+            display: flex; 
+            flex-wrap: wrap;
+            gap: 15px; 
+            justify-content: center;
+            border: 1px solid #334155; 
+            width: 320px;
+        }
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            width: 100%; 
+        }
+        .input-group label {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+        input {
+            background: #0f172a; 
+            border: 1px solid #475569; 
+            color: white;
+            padding: 12px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #38bdf8;
+        }
+        button {
+            flex: 1; 
+            background: #0284c7; 
+            color: white; 
+            border: none;
+            padding: 15px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+        button:hover { background: #0ea5e9; }
+        button:active { transform: scale(0.97); }
+        .btn-reset { background: #475569; flex: 0.4; }
+        .btn-reset:hover { background: #64748b; color: #fca5a5; }
+        
+        /* Loading Overlay invisível por padrão */
+        #status-msg {
+            position: absolute;
+            top: 20px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="status-msg">Sincronizando...</div>
+
+    <div class="stats">
+        <h2 id="display-nome">Carregando dados...</h2>
+        <h1 id="display-ml">0 ml</h1>
+        <p id="display-info">Meta: 4500 ml</p>
+        <p class="ontem" id="display-ontem">Ontem: 0 ml</p>
+    </div>
+
+    <div class="bottle-wrapper">
+        <div class="bottle-cap"></div>
+        <div class="bottle-neck"></div>
+        <div class="bottle-body">
+            <div class="water-fill" id="water"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label for="input-goal">Sua Meta Diária (ml)</label>
+            <input type="number" id="input-goal" value="4500" onchange="updateDisplay()">
+        </div>
+        <div class="input-group">
+            <label for="input-add">Registro Manual (ml)</label>
+            <input type="number" id="input-add" placeholder="Ex: 350">
+        </div>
+        <button onclick="addWater()">Adicionar</button>
+        <button class="btn-reset" onclick="resetWater()">Zerar</button>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURAÇÕES DO JSONBIN
+        // ==========================================
+        const BIN_ID = '69ea904b36566621a8e58a6f'; 
+        const API_KEY = '$2a$10$eBHRlgQQDARctaDx0wJA6.IqLF1W6ICK6nR31MDyZipSe4vhCAV1.'; 
+        const URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // Estado da Aplicação
+        let currentWater = 0;
+        let aguaOntem = 0;
+        let nomePessoa = "Gabriel Kaicon";
+
+        // Função auxiliar para verificar se a data é de hoje
+        function isToday(dateString) {
+            if (!dateString) return false;
+            const date = new Date(dateString);
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        // Mostra/esconde mensagem de status
+        function showStatus(show) {
+            document.getElementById('status-msg').style.opacity = show ? '1' : '0';
+        }
+
+        // 1. Carregar Dados da Nuvem
+        async function carregarDados() {
+            if (BIN_ID === '69ea904b36566621a8e58a6f') {
+                document.getElementById('display-nome').innerText = "Configure o JSONBin no código";
+                updateDisplay();
+                return;
+            }
+
+            showStatus(true);
+            try {
+                const response = await fetch(URL, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await response.json();
+                const record = data.record;
+
+                nomePessoa = record.nomePessoa || nomePessoa;
+                document.getElementById('display-nome').innerText = `Hidratação de ${nomePessoa}`;
+
+                // Lógica de virada de dia
+                if (isToday(record.ultimaAtualizacao)) {
+                    currentWater = record.aguaHoje || 0;
+                    aguaOntem = record.aguaOntem || 0;
+                } else {
+                    // Se o último registro não foi hoje, movemos a água de "hoje" para "ontem"
+                    aguaOntem = record.aguaHoje || 0;
+                    currentWater = 0;
+                    // Salva essa virada de dia imediatamente
+                    await salvarDadosNoBin(currentWater, aguaOntem);
+                }
+            } catch (error) {
+                console.error("Erro ao conectar com JSONBin:", error);
+                document.getElementById('display-nome').innerText = "Modo Offline (Erro na API)";
+            }
+            
+            showStatus(false);
+            updateDisplay();
+        }
+
+        // 2. Salvar Dados na Nuvem
+        async function salvarDadosNoBin(novoTotal, totalOntem = aguaOntem) {
+            if (BIN_ID === '69ea904b36566621a8e58a6f') return;
+
+            showStatus(true);
+            try {
+                await fetch(URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({
+                        nomePessoa: nomePessoa,
+                        aguaHoje: novoTotal,
+                        aguaOntem: totalOntem,
+                        ultimaAtualizacao: new Date().toISOString()
+                    })
+                });
+            } catch (error) {
+                console.error("Erro ao salvar no JSONBin:", error);
+            }
+            showStatus(false);
+        }
+
+        // 3. Atualizar Interface Visual
+        function updateDisplay() {
+            const goal = parseFloat(document.getElementById('input-goal').value) || 1;
+            
+            document.getElementById('display-ml').innerText = `${currentWater} ml`;
+            document.getElementById('display-info').innerText = `Meta: ${goal} ml`;
+            document.getElementById('display-ontem').innerText = `Ontem: ${aguaOntem} ml`;
+
+            let percentage = (currentWater / goal) * 100;
+            if (percentage > 100) percentage = 100;
+
+            anime({
+                targets: '#water',
+                height: `${percentage}%`,
+                duration: 1200,
+                easing: 'easeOutElastic(1, .8)'
+            });
+        }
+
+        // 4. Interações do Usuário
+        function addWater() {
+            const amountInput = document.getElementById('input-add');
+            const amount = parseFloat(amountInput.value);
+
+            if (!isNaN(amount) && amount > 0) {
+                currentWater += amount;
+                amountInput.value = ''; 
+                
+                updateDisplay(); // Atualiza a tela na hora para não dar delay visual
+                salvarDadosNoBin(currentWater); // Envia pro banco em background
+            }
+        }
+
+        function resetWater() {
+            if(confirm("Tem certeza que deseja zerar a água de hoje?")) {
+                currentWater = 0;
+                updateDisplay();
+                salvarDadosNoBin(currentWater);
+            }
+        }
+
+        // Iniciar o app buscando os dados
+        carregarDados();
+    </script>
+</body>
+</html>
